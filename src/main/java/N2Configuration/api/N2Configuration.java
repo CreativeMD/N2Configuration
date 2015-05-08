@@ -16,7 +16,6 @@ import cpw.mods.fml.relauncher.FMLInjectionData;
  */
 public class N2Configuration
 {
-	public static File configFolder = new File(getFolderDir(), "config/mechanical_crafing_table");
 	public static HashMap<String, File> DirectoryList = new HashMap<String, File>();
 	public static Logger log = LogManager.getLogger("N2ConfigAPI");
 

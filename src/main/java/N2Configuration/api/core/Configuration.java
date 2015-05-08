@@ -17,8 +17,6 @@ import N2Configuration.api.N2Configuration;
 public class Configuration
 {
 	public static HashMap<ConfigurationFile, File> fileList = new HashMap<ConfigurationFile, File>();
-	public static File configFolder = new File(N2Configuration.getFolderDir(), "config/mechanical_crafing_table");
-	public static File tempFolder = new File(N2Configuration.getFolderDir(), "config/mechanical_crafting_table/temp");
 	public static Logger log = N2Configuration.log;
 	
 	public enum FileType
