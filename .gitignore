@@ -1,0 +1,10 @@
+*.class
+*.jar
+*.zip
+
+!*.gradle
+!*build.gralde
+!*gradle
+!*gradlew
+!*gradlew.bat
+
