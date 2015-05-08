@@ -34,7 +34,7 @@ public class ConfigurationFile
 	 * @param targetDirectory - The default Directory where the ConfigurationFile should be generated.
 	 * @throws IllegalArgumentException When this targetDirectory isn't a Directory.
 	 */
-	public ConfigurationFile(String fileName, String configName, File targetDirectory)
+	public ConfigurationFile RegisterConfigurationFile(String fileName, String configName, File targetDirectory)
 	{
 		if(targetDirectory.isDirectory())
 		{
@@ -42,6 +42,8 @@ public class ConfigurationFile
 			this.fileName = fileName;
 		}
 		else throw new IllegalArgumentException("File " + targetDirectory.getAbsolutePath() + " isn't a Directory!");
+		
+		return this;
 	}
 	
 	/**
