@@ -22,7 +22,7 @@ import N2Configuration.api.core.ConfigHandler.FileType;
 public abstract class ConfigFile extends ConfigSectionCollection implements Cloneable
 {
 
-	private static final String sectionOutLine = "-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#";
+	private static final String sectionOutLine = "-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/";
 	private static String[] fileDescription;
 	private static Logger log = N2ConfigApi.log;
 	private String configName;
@@ -96,9 +96,7 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	
 	/**
 	 * This method will regenerate a configFile. Note, it will regenerate only invalidSections!
-	 * A section is considered invalid when a section doesn't contain the sectionName.
-	 * This method will recognize a section to 'its sectionStarter' or its sectionName(if the hideOutLines is enabled).
-	 * If not all the ConfigSection can be recognize, it will backup the file, and regenerate the whole File!
+	 * If something goes wrong during the regeneration, it will backup the file, and regenerate the whole File!
 	 * @param configurationFile
 	 * @param invalidSectionNames - List of IDNames of all the invalid Sections.
 	 * @throws IOException
@@ -109,7 +107,7 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 		File configFile = ConfigHandler.generateSingleFileFromConfigFile(FileType.Original, this, ConfigHandler.getFileFromConfigFile(this).getParentFile());
 		
 		BufferedWriter writer = getNewWriter();
-		BufferedReader reader = getNewReader();
+		BufferedReader reader = new BufferedReader(new FileReader(tempFile));
 		
 		int sectionCount = 0;
 		
@@ -156,25 +154,33 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 
 			if(readedLine.contains(";"))
 			{
-				if (invalidSectionList.contains(readedLine.substring(0, (readedLine.indexOf(";")))))
+				for(int i = 0; i < invalidSectionList.size(); i++)
 				{
-					invalidSectionList.remove(readedLine.substring(0, (readedLine.indexOf(";"))));
+					String subString = readedLine.replaceAll("[\\s.*]", "");
+					char firstLetter = subString.charAt(0);
+					try
+					{
+						if (invalidSectionList.contains(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";"))))
+						{
+							invalidSectionList.remove(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";")));
+						}
+					}
+					catch(Exception e){}
 				}
-				else continue;
 			}
-			else continue;
 		}	
 		if(!invalidSectionList.isEmpty())
 		{
 			for(int i = 0; i < invalidSectionList.size(); i++)
 			{
 				if(!(this.AbsoluteSubSectionMap.get(invalidSectionList.get(i)).getSectionType() == SectionType.Text) || !(this.AbsoluteSubSectionMap.get(invalidSectionList.get(i)).getSectionType() == SectionType.SectionHead))
-					log.error("Missing Section: " + invalidSectionList.get(i) + " in   ");
+					log.error("Missing Section: " + invalidSectionList.get(i) + " in " + ConfigHandler.getFileFromConfigFile(this).getName());
 			}
 			return invalidSectionList;
 		}
 		return null;
 	}
+
 	
 	/**
 	 * @param sectionName

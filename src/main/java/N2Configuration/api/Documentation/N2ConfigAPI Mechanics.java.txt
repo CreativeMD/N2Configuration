@@ -1,0 +1,236 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+    N2ConfigAPI Mechanics
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Dictionary
+    ------------------------------
+
+    Directory   - Folder (Where other Files are stored)
+    File        - (An actual File which can be accessed by any textWriter)
+    ConfigFile  - (An Class where you can modify the structure of the written content of an
+                  (Configuration)File)
+
+
+
+    Register
+    ------------------------------
+
+    Directory - Mechanics
+    File - Mechanics
+    The ConfigFile! - Structure
+    The ConfigFile! - ConfigSection
+    The ConfigFile! - ConfigSectionCollection
+    The ConfigFile! - ConfigFile
+
+
+    Directory - Mechanics
+    ------------------------------
+    
+    Before jumping into the new mechanics of the ConfigFile, Lets take a look at the Directory
+    mechanics first. The most common place for a ConfigFile is of course the '/config' Folder. Though
+    you might want to store your files in other places, such as the WorldSave(for World Specific data)
+    or you simply want an extra folder inside the '/config' Folder. For That purpose this implemented
+    an way to register your own Directory! In the tutorials there will be more information on how to
+    do that.
+    
+    Note, this is optional! You don't have to register/create your own Directory in order to store
+    your own ConfigFile.
+    
+    
+    Important related methods (N2ConfigApi)
+     - registerCustomConfigDirectory(); - This will register an Directory inside the '/config' folder.
+     - registerCustomDirectory(); - This will register an Directory wherever your destination input is.
+     
+     - getMCMainDir(); - This will return the MC Main Directory. 
+     - getConfigDir(); - This will return the '/config' Directory.
+     
+     
+     
+     
+     
+     File - Mechanics
+     ------------------------------
+     
+     If you register an ConfigFile, it will automatically register an File where your data will be stored.
+     Although you can't manually register your (Configuration)File, you can use the Methods for your own
+     Custom Files. Some methods require an FileType Enum, most of the time this will determine what
+     extension the File should get. If you use FileType Original or Copy. the File extension will be the
+     same.
+     
+     
+     Important related methods (ConfigHandler)
+     - generateSingeFile();                 - This will generate a single File, you have to put in your
+                                              own extensions!
+     - generateSingleFileFromConfigFile();  - This will do exactly the same, only for the ConfigFile
+     - copyFile();                          - This will copy the content of one File, and paste it in the
+                                              Other.
+     - loadConfigFile();                    - This will load, generate, check and if needed regenerate the
+                                              ConfigFile
+     - loadConfigFileList();                - This does the same as the method above, except for all the
+                                              ConfigFiles which are in the List.
+
+    FileTypes: (Currently only used in the 'GenerateFile' methods)
+    - Original - This will create an new (empty) File.
+    - BackUP   - This will create an Backup from the InputFile. (fileName_BackUp.txt)
+    - Temp     - This will create an Temporary File from the InputFile. (fileName_Temp.tmp)
+                 Note, although this is an copy, its recommended to only use this, if its really an
+                 Temporary File!
+    - Clone    - This will create an Copy of the inputFile (fileName_Copyx.(extension, for configFiles '.cfg'))
+    
+    
+    
+    
+    
+    The ConfigFile! - Structure
+    ------------------------------
+    
+    As it might be confusing how the API works, We'll try to explain the basic Structure of a ConfigFile.
+    A ConfigFile is nothing more than a Collection of ConfigSections. In figure 01, a structure of an
+    ConfigFile is displayed.
+    
+         figure 01 - ConfigFile Structure
+         ____________________________________________________
+        |ConfigFile - (ConfigSectionCollection)             |
+        |                                                   |
+        |   ConfigSection1                                  |
+        |   ConfigSection2                                  |
+        |   ConfigSection3 (ConfigSectoinCollection)        |
+        |       ConfigSection3.1                            |
+        |       ConfigSection3.2                            |
+        |       ConfigSection3.3                            |
+        |   ConfigSection4                                  |
+        |   ConfigSection5                                  |
+        |   ConfigSection6 (ConfigSectionCollection)        |
+        |       ConfigSection 6.1                           |
+        |       ConfigSection 6.2                           |
+        |       ConfigSection 6.3 (ConfigSectionCollection) |
+        |           ConfigSection 6.3.1                     |
+        |           ConfigSection 6.3.2                     |
+        |           ConfigSection 6.3.3                     |
+        |       ConfigSection 6.4                           |
+        |   ConfigSection7                                  |
+        |   ConfigSection8                                  |
+        |   ConfigSection9                                  |
+        |___________________________________________________|
+
+    
+    As can be seen above, the ConfigFile on itself is considered an ConfigSectionCollection, This means
+    that all methods from the ConfigSectionCollection can be called of an ConfigFile instance. Though
+    there are a lot of methods in the CondfigFile Class replacing the ConfigSectionCollection methods.
+    
+    
+    
+    
+    
+    The ConfigFile! - ConfigSection
+    ------------------------------
+
+    The ConfigSection is the basic 'Build' material. An ConfigSection contains the elements displayed below.
+    All of these fields can be set manually, but when you use the addMethod from the ConfigSectionCollection,
+    it will fill in most fields for you.
+    
+    - SectionName           - SeparateLines (boolean)
+    - Description           - HideOutLines  (boolean)
+    - DefaultValue          - SectionStarter
+    - SectionType           - SectionHeadEnder
+                            - SectionEnder
+
+    The boolean SeparateLines is used for ArrayType SectionTypes. This will determine if an Array should be
+    written on one single Line, or if the Array should Split up in separate Lines.
+    The boolean HideOutLines is used to determine whether or not the outlines of an Section should be written.
+    If you would set the SectionOutLine to null, it will actually write 'null' as outLine. While an empty String
+    ("") will still create a new Line.
+    
+         figure 02 - Snippet of how a default ConfigSection would look like.
+         __________________________________________________________________________________________________________
+        |                                                                                                          |
+        |                                                                                                          |
+        |   (SectionStarter)                                                                                       |
+        |   -----------------------------------------------------------------------------------------------------  |
+        |    # Example (Description)                                                                               |
+        |    # here can be some text, or an explanation                                                            |
+        |    # by default this is null, if the description is null, the SectionHeadEnder won't be written          |
+        |   -----------------------------------------------------------------------------------------------------  |
+        |   (SectionHeadEnder)                                                                                     |
+        |                                                                                                          |
+        |   (SectionName)Example; (DefaultValue)                                                                   |
+        |                                                                                                          |
+        |   (if SectionType is an Array SectionType, everyThing between '{''}' will be considered a value)         |
+        |   (SectionName)ExampleArray;{ (DefaultValue's) };                                                        |
+        |                                                                                                          |
+        |   -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-  |
+        |   (SectionEnder)                                                                                         |
+        |__________________________________________________________________________________________________________|
+
+    
+    
+    Important related methods
+     - setCustomSectionEnder/
+       setCustomSectionHeadEnder/ - These will set how the SectionOutLines will Look like.
+       setCustomSectionStarter();   Note, the following Characters may cause conflicts: ';', '{', '}'.
+    
+    - setDescription();  - This will set a Description. (This will also be possible by the ConfigFile!)
+    - setDefaultValue(); - This will set a DefaultValue.
+    
+    SectionTypes: (these are the implemented ConfigSections types)
+    - Short             - ShortArray
+    - Integer           - IntegerArray
+    - Long              - LongArray
+    - Float             - FloatArray
+    - Double            - DoubleArray
+    - Boolean           - BooleanArray
+    - String            - StringArray
+    - Text (This will only use a SectionStarter, SectionEnder and a Description)
+    - SectionHead (This is the same as a ConfigSectionCollection)
+    
+    
+    
+    
+    
+    The ConfigFile! - ConfigSectionCollection
+    ------------------------------
+
+    This is an very large (and maybe confusing) Class. although it is nothing else than an Container for ConfigSections.
+    The main way to add ConfigSections to your ConfigFile is by calling these methods (since the ConfigFile is considered
+    an ConfigSectionCollection). There are a lot of methods (like regenerate, write, check Section) which are mainly used
+    for the (easier) methods from the ConfigFile Class. you shouldn't try to use it, unless you really know what you are doing.
+        
+        
+     Important related methods
+     - addNew[SectionType]Section();   - Fore every ConfigSectionType there is an method you can use to add a ConfigSection to
+                                         this ConfigSectionCollection (or ConfigFile if you call it from the ConfigFile instance)
+     - insertConfigSection();          - This is mainly used for dynamically updating an ConfigFile. it will insert an
+                                         ConfigSection before the targetSection in the ConfigSectionCollection.
+     - removeSubConfigSection();       - This will remove an ConfigSection from the ConfigSectionCollection. This won't
+                                         automatically remove the section from the actual File, but it will be when the File is
+                                         regenerated.
+
+
+
+
+
+    The ConfigFile! - ConfigFile
+    ------------------------------
+
+    This is the MainClas you want to use for your ConfigFile. There are 2 ways to register a new ConfigFile. The first option is to create
+    a new ConfigFile (e.g. ConfigFile example = new ConfigFile(param.)). The second (and more advanced) option is to create a new Class, and
+    extend the ConfigFile Class. That way its easier to add/modify the ConfigSections in the ConfigFile
+    
+    The method 'generateFile()' will be called when you call the 'LoadConfig()'. You should put all your 'addNew[SectionType]Section()'
+    methods in there so the API 'know's' what the content of your ConfigFile should be.
+    
+    Important related methods
+    - generateFile();           - You'll need to implement this method if you extend the ConfigFile Class. It will be Called when a
+                                  'loadConfig()'method is called.
+    - writeAllSections();       - This will write All sections, it is already called when a 'loadConfig()' method is called. Note,
+                                   when its called while the file is not empty, it will simply add all the ConfigSections after the
+                                  Content
+    - writeSection();           - This will write a single Section if you need to. Though it will also be added to the existing content
+                                  of the File.
+    - checkConfigFile();        - This will return a List of all invalid ConfigSections in a configFile. a ConfigSection is considered
+                                  invalid if the SectionName (ID) can't be found in the file.
+    - regenerateConfigFile();   - This will regenerate the ConfigSections inside the List you put in. A 'loadConfig()' method will
+                                  automatically check an configFile, and rewrite it if it couldn't find a ConfigSection.
+    - getValue();               - This will return the Value of the SectionName(ID) you put in.
+    

@@ -168,7 +168,7 @@ public class ConfigSection
 	
 	/**
 	 * this will set a custom SectionStarter, this can be done for each individual section!
-	 * Symbols that might cause a conflict: '{''}'';'',''#'
+	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
 	public void setCustomSectionStarter(String sectionStarter)
@@ -178,7 +178,7 @@ public class ConfigSection
 	
 	/**
 	 * this will set a custom SectionHeadEnder, this can be done for each individual section!
-	 * Symbols that might cause a conflict: '{''}'';'',''#'
+	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
 	public void setCustomSectionHeadEnder(String sectionHeadEnder)
@@ -189,7 +189,7 @@ public class ConfigSection
 	
 	/**
 	 * this will set a custom SectionStarter, this can be done for each individual section!
-	 * Symbols that might cause a conflict: '{''}'';'',''#'
+	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
 	public void setCustomSectionEnder(String sectionEnder)

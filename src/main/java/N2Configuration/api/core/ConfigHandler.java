@@ -70,8 +70,9 @@ public class ConfigHandler
 	
 	/**
 	 * This will create new, or check all existing files.
+	 * Warning!, you really shouldn't call this if you don't know what you are doing!
 	 */
-	public static void loadAllConfigFiles()
+	private static void loadAllConfigFiles()
 	{
 		try
 		{
@@ -118,9 +119,37 @@ public class ConfigHandler
 			BufferedReader reader = configFile.getNewReader();
 			List<String> invalidSections = configFile.checkConfigFile(reader);
 			configFile.closeReader(reader);
+			configFile.regenerateConfigFile(invalidSections);
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
+	}
+	
+	/**
+	 * This will create or check all the configFiles in the StringArray.
+	 * @param configFileNames
+	 */
+	public static void loadConfigFileList(String[] configFileNames)
+	{
+		try
+		{
+			for(int i = 0; i < configFileNames.length; i++)
+			{
+				ConfigFile configFile = getConfigFileFromName(configFileNames[i]);
+				File file = getFileFromConfigFile(configFile);
+				file.getParentFile().mkdirs();
 			
-			if(invalidSections != null)
+				if(!file.exists())
+					file.createNewFile();
+			
+				configFile.generateFile();
+				BufferedReader reader = configFile.getNewReader();
+				List<String> invalidSections = configFile.checkConfigFile(reader);
+				configFile.closeReader(reader);
 				configFile.regenerateConfigFile(invalidSections);
+			}
 		}
 		catch(Exception e)
 		{
@@ -236,7 +265,6 @@ public class ConfigHandler
 
 				if(!currentConfigFile.getIsWritten())
 				{
-					file.createNewFile();
 					BufferedWriter writer = currentConfigFile.getNewWriter();
 					currentConfigFile.writeAllSections(writer);
 					currentConfigFile.closeWriter(writer);
@@ -287,5 +315,26 @@ public class ConfigHandler
 				return file;
 		}
 		return null;
+	}
+	
+	public BufferedWriter getWriter(File file) throws IOException
+	{
+		return new BufferedWriter(new FileWriter(file));
+	}
+	
+	public BufferedReader getReader(File file) throws IOException
+	{
+		return new BufferedReader(new FileReader(file));
+	}
+	
+	public void closeWriter(BufferedWriter writer) throws IOException
+	{
+		writer.flush();
+		writer.close();
+	}
+	
+	public void closeReader(BufferedReader reader) throws IOException
+	{
+		reader.close();
 	}
 }
