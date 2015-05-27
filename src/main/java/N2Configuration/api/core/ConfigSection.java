@@ -23,7 +23,7 @@ public class ConfigSection
 	/**
 	 * Default sectionStarter
 	 */
-	private String SectionStarter = "-----------------------------------------------------------------------------------------------------";
+	private String sectionStarter = "-----------------------------------------------------------------------------------------------------";
 	/**
 	 * Default sectionHeadEnder is the same as SectionStarter
 	 */
@@ -74,13 +74,6 @@ public class ConfigSection
 		this.defaultValue = defaultValue;
 		this.seperateLines = separateLines;
 		this.hideOutLines = hideOutLines;
-		
-		if(hideOutLines && description != null)
-		{
-			log.error(sectionName + ": hideOutLines can't be false if description isn't null!");
-			log.info("Setting hideOutLines to false.");
-			this.hideOutLines = false;
-		}
 	}
 
 	/**
@@ -151,14 +144,14 @@ public class ConfigSection
 	
 	public String getStarter()
 	{
-		return this.SectionStarter;
+		return this.sectionStarter;
 	}
 	
 	public String getHeadEnder()
 	{
 		if(this.SectionHeadEnder.length() > 0)
 			return this.SectionHeadEnder;
-		else return this.SectionStarter;
+		else return this.sectionStarter;
 	}
 	
 	public String getEnder()
@@ -173,7 +166,7 @@ public class ConfigSection
 	 */
 	public void setCustomSectionStarter(String sectionStarter)
 	{
-		this.SectionStarter = sectionStarter;
+		this.sectionStarter = sectionStarter;
 	}
 	
 	/**

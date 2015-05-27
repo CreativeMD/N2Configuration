@@ -1,0 +1,128 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    N2ConfigAPI Tutorial - Advanced
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    This tutorial will explain all you need to know to create your own ConfigFile.Class.
+    ------------------------------
+    
+    Creating your own ConfigFile.Class is not necessary, but it gives you a lot more options,
+    and its cleaner than putting all the code inside your ProxyClasses.
+    
+    In this case we are going to make an ConfigFile with the following ConfigSections: Integer,
+    String, StringArray.
+    
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+      
+        Package examplePackage
+      
+        import java.io.File;
+        import N2Configuration.api.core.ConfigFile;
+      
+        public class ExampleConfigFile extends ConfigFile
+        {
+        
+            private static final String IntegerSectionName = "my Integer Section";
+            private static final String StringSectionName = "my String Section";
+            private static final String StringArraySectionName = "my StringArray Section";
+            
+            private static final String[] ConfigFileDescription = new String[]
+            {
+                "The description of this ConfigFile.",
+            };
+            
+            private static final String[] StringDescription = new String[]
+            {
+                "Here we can put our description.",
+                "", //an empty String will skip a line (e.g. write an empty line)
+                "This is our new String.",
+            };
+            
+            public ExampleConfigFile(String fileName, File targetDirectory)
+            {
+                super(fileName, targetDirectory);
+                /*
+                * Here you can put methods to adjust the outlines, description etc.
+                * Tip: Don't use these outLines, they are pretty ugly. 
+                */
+                super.setCustomSectionStarter("let try something ----------");
+                super.setCustomSectionHeadEnder("let try something ----------");
+                super.setCustomSectionEnder("let try something ----------");
+                super.setDescription(ConfigFileDescription);
+            }
+            
+            @Override
+            public void generateFile()
+            {
+                /*
+                * This method will be called when you 'load' this ConfigFile.
+                * Usually this is the place where you put all your 'addConfigSections' methods.
+                */
+                
+                super.addNewIntegerSection(IntegerSectionName, null, 123, false);
+                super.addNewStringSection(StringSectionName, StringDescription, "something", false);
+                super.addNewStringArraySection(StringArraySectionName, null, null, false, false);
+            }
+        
+            /*
+            * These methods are optional, but it makes this 'easy-to-use'.
+            */
+            
+            public int getIntValue()
+            {
+                return (int) super.getValue(IntegerSectionName);
+            }
+            
+            public String getStringValue()
+            {
+                return (String) super.getValue(StringSectionName);
+            }
+            
+            public String[] getStingArrayValue()
+            {
+                return (String[]) super.getValue(StringArraySectionName);
+            }
+        }
+     
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    
+    The only thing we have to do now is registering this ConfigFile, and make sure its generated!
+    (It is almost the same as using the DefaultConfigFile)
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+        ConfigFile example = new ExampleConfigFile("myFileName", N2ConfigApi.getConfigDir());
+        ConfigHandler.loadAndCheckConfigFile("myFileName");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    Congratulations!, you now have made your own ConfigFile!
+    
+    
+    
+    
+    Extra
+    ------------------------------
+    With this API there are a lot of extra options which is pretty difficult to accomplish with the
+    vanilla ConfigEngine. Here are a few options which are easy to setup.
+    
+    - Multiple (sub)Mods with one ConfigFile.
+     
+     Yea its possible to add sections to a ConfigFile from other Mod Instances. This way you can have
+     one ConfigFile for all your mods, coreMods and ModAddons. To add ConfigSections to a ConfigFile, 
+     you either need the ConfigFile name, or a ConfigFile instance. In this case we're using the
+     ConfigFileName.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+      ConfigFile headModConfigFile = ConfigHandler.getConfigFileFromName("myHeadModConfigFileName");
+      ConfigSectionCollection subModConfigSectionCollection = headModConfigFile.addNewConfigSectionCollection("thisSectionName", null, true);
+      ConfigHandler.loadAndCheckConfigFile(coreConfigFile.getFileName("myHeadModConfigFileName"));
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     
+     In this example we're using a ConfigSectionCollection since it can store multiple ConfigSections
+     (like a ConfigFile). of course you can add ConfigSections directly in the same way.
+     Note1, at the end its recommended to use loadAndCeckConfigFile to make sure all the added
+     ConfigSections are written!
+     Note2, this is only a 100% guarantee when your mod is an dependency (required after annotation)
+     of the headMod. Otherwise keep in mind that it may crash the game!
+     
+     
+     

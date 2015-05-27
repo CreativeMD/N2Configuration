@@ -27,6 +27,13 @@ public class ConfigSectionCollection extends ConfigSection
 	private ConfigSectionCollection superConfigSectionCollection;
 	private boolean setExtraSpaces;
 
+	private ConfigSectionCollection(String sectionName, String[] description, boolean setExtraSpaces, int level)
+	{
+		super(sectionName, description, null, SectionType.SectionHead, true, false);
+		this.setExtraSpaces = setExtraSpaces;
+		this.level = level;
+	}
+	
 	/**
 	 * @param sectionName
 	 * @param description
@@ -34,9 +41,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 */
 	public ConfigSectionCollection(String sectionName, String[] description, boolean setExtraSpaces)
 	{
-		super(sectionName, description, null, SectionType.SectionHead, true, false);
-		this.setExtraSpaces = setExtraSpaces;
-		this.level = 0;
+		this(sectionName, description, setExtraSpaces, 0);
 	}
 	
 	/**
@@ -48,7 +53,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 */
 	public ConfigSection addNewConfigSectionCollection(String sectionName, String[] description, boolean setExtraSpaces)
 	{
-		ConfigSection configSection = new ConfigSectionCollection(sectionName, description, setExtraSpaces);
+		ConfigSection configSection = new ConfigSectionCollection(sectionName, description, setExtraSpaces, this.level+1);
 		((ConfigSectionCollection)configSection).setSuperConfigSectionCollection(this);
 		addNewSection(sectionName, configSection);
 		return configSection;
@@ -91,7 +96,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewIntegerSection(String sectionName, String[] description, int defaultValue, boolean hideOutLines)
 	{
@@ -107,7 +112,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewIntegerArraySection(String sectionName, String[] description, int[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -122,7 +127,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewLongSection(String sectionName, String[] description, long defaultValue, boolean hideOutLines)
 	{
@@ -138,7 +143,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewLongArraySection(String sectionName, String[] description, long[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -153,7 +158,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewFloatSection(String sectionName, String[] description, float defaultValue, boolean hideOutLines)
 	{
@@ -169,7 +174,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewFloatArraySection(String sectionName, String[] description, float[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -184,7 +189,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewDoubleSection(String sectionName, String[] description, double defaultValue, boolean hideOutLines)
 	{
@@ -200,7 +205,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewDoubleArraySection(String sectionName, String[] description, double[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -215,7 +220,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewBooleanSection(String sectionName, String[] description, boolean defaultValue, boolean hideOutLines)
 	{
@@ -231,7 +236,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewBooleanArraySection(String sectionName, String[] description, boolean[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -246,7 +251,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param description
 	 * @param defaultValue
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewStringSection(String sectionName, String[] description, String defaultValue, boolean hideOutLines)
 	{
@@ -262,7 +267,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param defaultValue
 	 * @param separateLines
 	 * @param hideOutLines
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewStringArraySection(String sectionName, String[] description, String[] defaultValue, boolean separateLines, boolean hideOutLines)
 	{
@@ -276,7 +281,7 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param sectionName - The ID of this Section
 	 * @param description - If description is null, a newLine (return) will be written instead of a Text Section
 	 * @param defaultValue
-	 * @throws IOException
+	 * @return
 	 */
 	public ConfigSection addNewTextSection(String sectionName, String[] description)
 	{
@@ -294,10 +299,11 @@ public class ConfigSectionCollection extends ConfigSection
 	{
 		if(!this.subSectionMap.containsKey(sectionName))
 		{
-			this.subSectionMap.put(sectionName, configSection);
-			this.subSectionOrderList.add(this.subSectionOrderList.size(), configSection);
 			if(this.superConfigSectionCollection != null)
-				this.superConfigSectionCollection.insertConfigSection(configSection, this.superConfigSectionCollection.getConfigSectionAtIndex(this.superConfigSectionCollection.getConfigSectionIndex(this.getSectionName()) + 1));
+				if(!this.superConfigSectionCollection.insertConfigSection(configSection, this.superConfigSectionCollection.getConfigSectionAtIndex(this.superConfigSectionCollection.getConfigSectionIndex(this.getSectionName()) + 1)))
+					return;
+			this.subSectionOrderList.add(this.subSectionOrderList.size(), configSection);
+			this.subSectionMap.put(sectionName, configSection);
 			this.AbsoluteSubSectionMap.put(sectionName, configSection);
 		}
 		else log.error("Section: " + sectionName + " is already registered!");
@@ -311,9 +317,11 @@ public class ConfigSectionCollection extends ConfigSection
 	 */
 	public boolean insertConfigSection(ConfigSection insertConfigSection, ConfigSection configSectionTarget)
 	{
+		if(this.AbsoluteSubSectionMap.containsValue(insertConfigSection) || this.AbsoluteSubSectionMap.containsKey(insertConfigSection.getSectionName()))
+			return false;
 		if(this.superConfigSectionCollection != null)
 			return this.superConfigSectionCollection.insertConfigSection(insertConfigSection, configSectionTarget);
-		else return supreInsertConfigSection(insertConfigSection, configSectionTarget);
+		else return superInsertConfigSection(insertConfigSection, configSectionTarget);
 	}
 	
 	/**
@@ -322,8 +330,11 @@ public class ConfigSectionCollection extends ConfigSection
 	 * @param configSectionTarget -  The ConfigSection which the new ConfigSection should be inserted before!
 	 * @return True if the insertion was successful, false otherwise.
 	 */
-	private boolean supreInsertConfigSection(ConfigSection insertConfigSection, ConfigSection configSectionTarget)
+	private boolean superInsertConfigSection(ConfigSection insertConfigSection, ConfigSection configSectionTarget)
 	{
+		if(!this.AbsoluteSubSectionMap.containsValue(insertConfigSection) || this.AbsoluteSubSectionMap.containsKey(insertConfigSection.getSectionName()))
+			return false;
+		
 		int index = 0;
 		if(this.subSectionMap.containsValue(configSectionTarget))
 		{
@@ -342,10 +353,20 @@ public class ConfigSectionCollection extends ConfigSection
 			
 			if(insertConfigSection instanceof ConfigSectionCollection)
 			{
+				List<String> configSectionNames = new ArrayList<String>();
 				int subSectionCount = ((ConfigSectionCollection) insertConfigSection).getAbsoluteSubSectionCount();
+				
 				for(int ii = 0; ii < subSectionCount; ii++)
 				{
-					insertConfigSection(((ConfigSectionCollection)insertConfigSection).getConfigSectionAtIndex(ii), configSectionTarget);
+					if(!superInsertConfigSection(((ConfigSectionCollection)insertConfigSection).getConfigSectionAtIndex(ii), configSectionTarget))
+					{
+						for(int ij = 0; ij < configSectionNames.size(); ij++)
+						{
+							removeSubConfigSection(configSectionNames.get(ij));
+						}
+						return false;
+					}
+					configSectionNames.add(((ConfigSectionCollection)insertConfigSection).getConfigSectionAtIndex(ii).getSectionName());
 				}
 			}
 			return true;
@@ -356,13 +377,15 @@ public class ConfigSectionCollection extends ConfigSection
 			ConfigSection configSection	= this.subSectionOrderList.get(ip);
 			if(configSection instanceof ConfigSectionCollection)
 			{
-				if(((ConfigSectionCollection)configSection).insertConfigSection(insertConfigSection, configSectionTarget))
+				if(((ConfigSectionCollection)configSection).superInsertConfigSection(insertConfigSection, configSectionTarget))
 				{
 					this.AbsoluteSubSectionMap.put(insertConfigSection.getSectionName(), insertConfigSection);
 					return true;
 				}
 			}
 		}
+		log.error("Something Strange happens during adding ConfigSection: " + insertConfigSection.getSectionName());
+		log.info("Its recommended to regenerate this ConfigFile");
 		return false;
 	}
 	
@@ -372,6 +395,8 @@ public class ConfigSectionCollection extends ConfigSection
 	 */
 	public boolean removeSubConfigSection(String configSectionName)
 	{
+		if(!this.AbsoluteSubSectionMap.containsKey(configSectionName))
+			return false;
 		if(this.superConfigSectionCollection != null)
 			return (this.superConfigSectionCollection).superRemoveSubConfigSection(configSectionName);
 		else return superRemoveSubConfigSection(configSectionName);
@@ -397,7 +422,7 @@ public class ConfigSectionCollection extends ConfigSection
 				for(int i = 0; i < this.subSectionMap.size(); i++)
 				{
 					if(this.subSectionOrderList.get(i) instanceof ConfigSectionCollection)
-						if(((ConfigSectionCollection) this.subSectionOrderList.get(i)).removeSubConfigSection(configSectionName))
+						if(((ConfigSectionCollection) this.subSectionOrderList.get(i)).superRemoveSubConfigSection(configSectionName))
 						{
 							this.AbsoluteSubSectionMap.remove(configSectionName);
 							return true;
@@ -408,6 +433,16 @@ public class ConfigSectionCollection extends ConfigSection
 			}
 		}
 		else return false;
+	}
+	
+	/**
+	 * This will remove all ConfigSections which are stored in THIS ConfigSectionCollection.
+	 */
+	public void clearAllConfigSections()
+	{
+		this.AbsoluteSubSectionMap = new HashMap<String, ConfigSection>();
+		this.subSectionMap = new HashMap<String, ConfigSection>();
+		this.subSectionOrderList = new ArrayList<ConfigSection>();
 	}
 	
 	/**
@@ -605,8 +640,8 @@ public class ConfigSectionCollection extends ConfigSection
 					{
 						if(section.getSectionName().equals(readedLine.substring(readedLine.indexOf(firstLetter1), readedLine.indexOf(";"))))
 						{
-							if(section instanceof ConfigSectionCollection)
-								totalSectionsChecked += ((ConfigSectionCollection) section).regenConfigChapter(writer, reader, invalidSections);
+							if(section.getSectionType() == SectionType.Text || section.getSectionType() == SectionType.SectionHead)
+								continue;
 							else
 							{
 								if(!invalidSections.contains(section.getSectionName()))
@@ -674,16 +709,27 @@ public class ConfigSectionCollection extends ConfigSection
 			readedLine = reader.readLine();
 		}
 		
-		appendLineWithOffset(writer, this.getStarter(), this.level);
-		writer.newLine();
-		for(int ik = 0; ik < this.getDescription().length; ik++)
+		if(this.getStarter()!= null && !this.getHideOutLines())
 		{
-			appendLineWithOffset(writer, (" # " + this.getDescription()[ik]), this.level);
+			appendLineWithOffset(writer, this.getStarter(), this.level);
 			writer.newLine();
 		}
-		appendLineWithOffset(writer, this.getHeadEnder(), this.level);
 		
-		writer.newLine();
+		if(this.getDescription() != null)
+		{
+			for(int ik = 0; ik < this.getDescription().length; ik++)
+			{
+				appendLineWithOffset(writer, (" # " + this.getDescription()[ik]), this.level);
+				writer.newLine();
+			}
+			
+			if(this.getHeadEnder() != null && ! this.getHideOutLines())
+			{
+				appendLineWithOffset(writer, this.getHeadEnder(), this.level);
+				writer.newLine();
+			}
+		}
+		
 		writer.newLine();
 		writer.flush();
 	
@@ -697,11 +743,13 @@ public class ConfigSectionCollection extends ConfigSection
 			{
 				if(sectionValues.containsKey(currentSection.getSectionName()))
 				{
-					if(!currentSection.getHideOutLines())
+
+					if(currentSection.getStarter() != null && !currentSection.getHideOutLines())
 					{
 						appendLineWithOffset(writer, currentSection.getStarter(), this.level + 1);
 						writer.newLine();	
 					}
+					
 					if(currentSection.getDescription() != null)
 					{
 						for(int ip = 0; ip < currentSection.getDescription().length; ip++)
@@ -709,12 +757,14 @@ public class ConfigSectionCollection extends ConfigSection
 							appendLineWithOffset(writer, " # " + currentSection.getDescription()[ip], this.level + 1);
 							writer.newLine();
 						}
+						
+						if(currentSection.getHeadEnder() != null && !currentSection.getHideOutLines())
+						{
+							appendLineWithOffset(writer, currentSection.getHeadEnder(), this.level + 1);
+							writer.newLine();
+						}
 					}
-					if(!currentSection.getHideOutLines())
-					{
-						appendLineWithOffset(writer, currentSection.getHeadEnder(), this.level + 1);
-						writer.newLine();
-					}
+					
 					writer.flush();
 					
 						String[] values = sectionValues.get(currentSection.getSectionName());
@@ -737,7 +787,7 @@ public class ConfigSectionCollection extends ConfigSection
 						}
 						writer.newLine();
 					
-					if(!currentSection.getHideOutLines())
+					if(currentSection.getEnder() != null && !currentSection.getHideOutLines())
 					{
 						appendLineWithOffset(writer, currentSection.getEnder(), this.level + 1);
 						writer.newLine();
@@ -757,7 +807,7 @@ public class ConfigSectionCollection extends ConfigSection
 		if(!this.setExtraSpaces)
 			writer.newLine();
 		
-		if(!this.getHideOutLines())
+		if(this.getEnder() != null && !this.getHideOutLines())
 		{
 			appendLineWithOffset(writer, this.getEnder(), this.level);
 			writer.newLine();
@@ -793,18 +843,25 @@ public class ConfigSectionCollection extends ConfigSection
 	{
 		if(!section.getHideOutLines())
 		{
-			appendLineWithOffset(writer, section.getStarter(), this.level);
+			if(this.getStarter() != null)
+			{
+				appendLineWithOffset(writer, section.getStarter(), this.level);
+				writer.newLine();
+			}
+			
 			if(section.getDescription() != null)
 			{
-				writer.newLine();
 				for(int i = 0; i < section.getDescription().length; i++)
 				{
 					appendLineWithOffset(writer, " # " + section.getDescription()[i], this.level);
 					writer.newLine();
 				}
-				appendLineWithOffset(writer, section.getHeadEnder(), this.level);
+				if(this.getHeadEnder() != null)
+				{
+					appendLineWithOffset(writer, section.getHeadEnder(), this.level);
+					writer.newLine();
+				}
 			}
-			writer.newLine();
 			writer.newLine();
 		}
 		
@@ -821,7 +878,7 @@ public class ConfigSectionCollection extends ConfigSection
 		}
 		
 		writer.newLine();
-		if(!section.getHideOutLines())
+		if(this.getEnder() != null && !section.getHideOutLines())
 			appendLineWithOffset(writer, section.getEnder(), this.level);
 		writer.flush();
 	}
@@ -836,20 +893,30 @@ public class ConfigSectionCollection extends ConfigSection
 		}
 		else if(!section.getHideOutLines())
 		{
-			appendLineWithOffset(writer, section.getStarter(), (1+this.level));
+			if(this.getStarter() != null)
+			{
+				appendLineWithOffset(writer, section.getStarter(), (1+this.level));
+				writer.newLine();
+			}
+			
 			if(section.getDescription() != null)
 			{
-				writer.newLine();
 				for(int i = 0; i < section.getDescription().length; i++)
 				{
 					appendLineWithOffset(writer, " # " + section.getDescription()[i], (1+this.level));
 					writer.newLine();
 				}
-				if(sectionType != SectionType.Text)
+				if(sectionType != SectionType.Text && this.getHeadEnder() != null)
+				{
 					appendLineWithOffset(writer, section.getHeadEnder(), (1+this.level));
-				else appendLineWithOffset(writer, section.getEnder(), (1+this.level));
+					writer.newLine();
+				}
+				else if(this.getEnder() != null)
+				{
+					appendLineWithOffset(writer, section.getEnder(), (1+this.level));
+					writer.newLine();
+				}
 			}
-			writer.newLine();
 			writer.newLine();
 			writer.flush();
 		}
@@ -1026,7 +1093,7 @@ public class ConfigSectionCollection extends ConfigSection
 				writer.newLine();
 				writer.flush();
 			}
-			if(!section.getHideOutLines())
+			if(this.getEnder() != null && !section.getHideOutLines())
 			{
 				appendLineWithOffset(writer, section.getEnder(), (1+this.level));
 				writer.newLine();

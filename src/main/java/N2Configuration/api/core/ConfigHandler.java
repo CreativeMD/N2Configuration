@@ -41,7 +41,11 @@ public class ConfigHandler
 	protected static void registerConfigurationFile(ConfigFile configFile, String fileName, File targetDirectory)
 	{
 		if(N2ConfigApi.DirectoryList.isEmpty())
-			N2ConfigApi.DirectoryList.put("Default", N2ConfigApi.getConfigDir());
+		{
+			File defaultFile = new File(N2ConfigApi.getMCMainDir(), "config");
+			N2ConfigApi.DirectoryList.put("Default", defaultFile);
+			N2ConfigApi.TempDirectoryList.put(defaultFile, (new File(N2ConfigApi.getConfigDir(), "temp")));
+		}
 		File newFile;
 		if(targetDirectory.isDirectory())
 			newFile = new File(targetDirectory, (fileName += ".cfg"));
@@ -69,10 +73,27 @@ public class ConfigHandler
 	}
 	
 	/**
+	 * @param fileName
+	 * @return true if the ConfigFile is removed, false otherwise.
+	 */
+	public static boolean removeConfigurationFile(String fileName)
+	{
+		ConfigFile configFile = getConfigFileFromName(fileName);
+		
+		if(configFile == null)
+			return false;
+		
+		fileList.remove(getConfigFileFromName(fileName));
+		return true;
+	}
+	
+	/**
 	 * This will create new, or check all existing files.
 	 * Warning!, you really shouldn't call this if you don't know what you are doing!
+	 * (Inaccessible for now, since there isn't a way to store files per ModInstance,
+	 * this would only harm the performance when called.)
 	 */
-	private static void loadAllConfigFiles()
+	private static void loadAndCheckAllConfigFiles()
 	{
 		try
 		{
@@ -87,9 +108,7 @@ public class ConfigHandler
 			while(file.hasNext())
 			{
 				ConfigFile current = file.next();
-				BufferedReader reader = current.getNewReader();
-				List<String> invalidSections = current.checkConfigFile(reader);
-				current.closeReader(reader);
+				List<String> invalidSections = current.checkConfigFile();
 				if(invalidSections != null)
 					current.regenerateConfigFile(invalidSections);
 			}
@@ -104,22 +123,38 @@ public class ConfigHandler
 	 * This will create or check the configFile.
 	 * @param configFileName
 	 */
+	public static void loadAndCheckConfigFile(String configFileName)
+	{
+		try
+		{
+			ConfigFile configFile = getConfigFileFromName(configFileName);
+			if(configFile != null)
+			{
+				generateSingleFile(configFile);
+			
+				List<String> invalidSections = configFile.checkConfigFile();
+				configFile.regenerateConfigFile(invalidSections);
+			}
+			else log.error("Couldn't find ConfigFile: " + configFileName);
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
+	}
+	
+	/**
+	 * This will create the configFile.
+	 * @param configFileName
+	 */
 	public static void loadConfigFile(String configFileName)
 	{
 		try
 		{
 			ConfigFile configFile = getConfigFileFromName(configFileName);
-			File file = getFileFromConfigFile(configFile);
-			file.getParentFile().mkdirs();
-			
-			if(!file.exists())
-				file.createNewFile();
-			
-			configFile.generateFile();
-			BufferedReader reader = configFile.getNewReader();
-			List<String> invalidSections = configFile.checkConfigFile(reader);
-			configFile.closeReader(reader);
-			configFile.regenerateConfigFile(invalidSections);
+			if(configFile != null)
+				generateSingleFile(configFile);
+			else log.error("Couldn't find ConfigFile: " + configFileName);
 		}
 		catch(Exception e)
 		{
@@ -131,6 +166,25 @@ public class ConfigHandler
 	 * This will create or check all the configFiles in the StringArray.
 	 * @param configFileNames
 	 */
+	public static void loadAndCheckConfigFileList(String[] configFileNames)
+	{
+		try
+		{
+			for(int i = 0; i < configFileNames.length; i++)
+			{
+				loadAndCheckConfigFile(configFileNames[i]);
+			}
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
+	}
+	
+	/**
+	 * This will create all the configFiles in the StringArray.
+	 * @param configFileNames
+	 */
 	public static void loadConfigFileList(String[] configFileNames)
 	{
 		try
@@ -138,17 +192,9 @@ public class ConfigHandler
 			for(int i = 0; i < configFileNames.length; i++)
 			{
 				ConfigFile configFile = getConfigFileFromName(configFileNames[i]);
-				File file = getFileFromConfigFile(configFile);
-				file.getParentFile().mkdirs();
-			
-				if(!file.exists())
-					file.createNewFile();
-			
-				configFile.generateFile();
-				BufferedReader reader = configFile.getNewReader();
-				List<String> invalidSections = configFile.checkConfigFile(reader);
-				configFile.closeReader(reader);
-				configFile.regenerateConfigFile(invalidSections);
+				if(configFile != null)
+					generateSingleFile(configFile);
+				else log.error("Couldn't find ConfigFile: " + configFileNames[i]);
 			}
 		}
 		catch(Exception e)
@@ -189,12 +235,17 @@ public class ConfigHandler
 			newFile = new File(target, originalFileName + "_Temp.tmp");
 			break;
 		case Clone:
-			while(true)
+			int i = 1;
+			if(ConfigHandler.getConfigFileFromName(originalFileName) == null)
+				newFile = new File(target, originalFileName);
+			else
 			{
-				int i = 1;
-				newFile = new File(target, originalFileName + "_copy_" + i + originalFile.getName().substring(originalFileName.length(), originalFile.getName().length()));
-				if(newFile.exists()) i++;
-				else break;
+				while(true)
+				{
+					newFile = new File(target, originalFileName + "_copy_" + i + originalFile.getName().substring(originalFileName.length(), originalFile.getName().length()));
+					if(newFile.exists()) i++;
+					else break;
+				}
 			}
 			break;
 		}
@@ -205,15 +256,30 @@ public class ConfigHandler
 			copyFile(originalFile, newFile);
 		return newFile;
 	}
+	
 	/**
-	 * This will create a new ConfigFile. Note, it will override existing files (except 'Clone' FileTypes)
+	 * This will create a new ConfigFile. Note, it will override existing files (except 'Clone' FileTypes).
 	 * @param fileType
 	 * @param configFile
 	 * @param targetDirectory - This is the Directory where the ConfigurationFile will be created.
 	 * @return - The new created File. Note, the 'original' fileType will return an empty File!
 	 * @throws IOException
 	 */
-	public static File generateSingleFileFromConfigFile(FileType fileType, ConfigFile configFile, File targetDirectory) throws IOException
+	public static File generateSingleFileFromConfigFile(ConfigFile configFile, FileType fileType, File targetDirectory) throws IOException
+	{
+		return generateSingleFileFromConfigFile(null, configFile, fileType, targetDirectory);
+	}
+	
+	/**
+	 * This is mainly used for Clones with specific names.
+	 * @param fileName
+	 * @param fileType
+	 * @param configFile
+	 * @param targetDirectory - This is the Directory where the ConfigurationFile will be created.
+	 * @return - The new created File. Note, the 'original' fileType will return an empty File!
+	 * @throws IOException
+	 */
+	public static File generateSingleFileFromConfigFile(String fileName, ConfigFile configFile, FileType fileType, File targetDirectory)
 	{
 		File target = null;
 		if(targetDirectory == null)
@@ -222,20 +288,39 @@ public class ConfigHandler
 		String originalFileName = configFile.getFileName();
 		File originalFile = fileList.get(configFile);
 		
-		File file = generateSingeFile(originalFileName, fileType, originalFile, targetDirectory);
+		File file = null;
 		ConfigFile newConfigurationFile = null;
 		
 		try
 		{
-			newConfigurationFile = (ConfigFile) configFile.CloneConfigurationFileInstance();
+			if(fileName != null)
+				file = generateSingeFile(fileName, FileType.Original, originalFile, targetDirectory);
+			else file = generateSingeFile(originalFileName, fileType, originalFile, targetDirectory);
 		}
 		catch(Exception e)
 		{
 			log.catching(e);
 		}
 		
-		if(fileType.equals(FileType.Clone));
-		registerConfigurationFile(newConfigurationFile, file.getName().substring(0, file.getName().length()-4), targetDirectory);
+		if(fileType.equals(FileType.Clone))
+		{
+			try
+			{
+				newConfigurationFile = (ConfigFile) configFile.CloneConfigurationFileInstance();
+			}
+			catch(Exception e)
+			{
+				log.catching(e);
+			}
+			
+			if(fileName != null)
+				newConfigurationFile.setFileName(fileName);
+			else newConfigurationFile.setFileName(file.getName().substring(0, file.getName().length()-4));
+			
+			if(fileName != null)
+				registerConfigurationFile(newConfigurationFile, fileName, targetDirectory);
+			else registerConfigurationFile(newConfigurationFile, file.getName().substring(0, file.getName().length()-4), targetDirectory);
+		}
 		
 		return file;
 	}
@@ -261,15 +346,32 @@ public class ConfigHandler
 				dirtemp.mkdirs();
 				if(!file.exists())
 					file.createNewFile();
+
 				currentConfigFile.generateFile();
 
 				if(!currentConfigFile.getIsWritten())
-				{
-					BufferedWriter writer = currentConfigFile.getNewWriter();
-					currentConfigFile.writeAllSections(writer);
-					currentConfigFile.closeWriter(writer);
-				}
+					currentConfigFile.writeAllSections();
 			} 
+		}
+	}
+	
+	private static void generateSingleFile(ConfigFile configFile) throws IOException
+	{
+		if(configFile != null)
+		{
+			File file = getFileFromConfigFile(configFile);
+			File dir = file.getParentFile();
+			File dirtemp = N2ConfigApi.getTempDir(dir);
+			
+			dir.mkdirs();
+			dirtemp.mkdirs();
+			if(!file.exists())
+				file.createNewFile();
+
+			configFile.generateFile();
+			
+			if(!configFile.getIsWritten())
+				configFile.writeAllSections();
 		}
 	}
 	
@@ -279,23 +381,30 @@ public class ConfigHandler
 	 * @param copyFile - File which it should copy to.
 	 * @throws IOException
 	 */
-	public static void copyFile(File oldFile, File copyFile) throws IOException
+	public static void copyFile(File oldFile, File copyFile)
 	{
-		if(oldFile != null && copyFile != null)
+		try
 		{
-			BufferedReader reader = new BufferedReader(new FileReader(oldFile));
-			BufferedWriter writer = new BufferedWriter(new FileWriter(copyFile));
-			
-			String readedLine;
-			
-			while((readedLine = reader.readLine()) != null)
+			if(oldFile != null && copyFile != null)
 			{
-				writer.append(readedLine);
-				writer.newLine();
-				writer.flush();
+				BufferedReader reader = new BufferedReader(new FileReader(oldFile));
+				BufferedWriter writer = new BufferedWriter(new FileWriter(copyFile));
+				
+				String readedLine;
+				
+				while((readedLine = reader.readLine()) != null)
+				{
+					writer.append(readedLine);
+					writer.newLine();
+					writer.flush();
+				}
+				writer.close();
+				reader.close();
 			}
-			writer.close();
-			reader.close();
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
 		}
 	}
 	

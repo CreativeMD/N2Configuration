@@ -65,10 +65,15 @@
      - generateSingleFileFromConfigFile();  - This will do exactly the same, only for the ConfigFile
      - copyFile();                          - This will copy the content of one File, and paste it in the
                                               Other.
-     - loadConfigFile();                    - This will load, generate, check and if needed regenerate the
+     - loadAndCheckConfigFile();            - This will load, generate, check and if needed regenerate the
                                               ConfigFile
-     - loadConfigFileList();                - This does the same as the method above, except for all the
-                                              ConfigFiles which are in the List.
+     - loadConfigFile();                    - This will load and if needed write the ConfigFile.
+     - loadAndCheckConfigFileList();        - This does the same as the 'loadAndCheckConfigFile()' method,
+                                              except this does it for all the ConfigFiles which are in the List.
+     - loadConfigFileList();                - This does the same as the 'loadConfigFile()' method, except
+                                              this does it for all the ConfigFiles which are in the List.
+     - removeConfigurationFile();           - This will delete a certain ConfigFile. Note, this will not
+                                              delete the actual File!
 
     FileTypes: (Currently only used in the 'GenerateFile' methods)
     - Original - This will create an new (empty) File.
@@ -205,6 +210,9 @@
      - removeSubConfigSection();       - This will remove an ConfigSection from the ConfigSectionCollection. This won't
                                          automatically remove the section from the actual File, but it will be when the File is
                                          regenerated.
+     - clearAllConfigSections();       - This will remove all ConfigSections which are stored in this ConfigSectionCollection.
+                                         Its mostly used for 'reseting' a configFile, or when you dynamically update the content
+                                         of the ConfigSectionCollection.
 
 
 

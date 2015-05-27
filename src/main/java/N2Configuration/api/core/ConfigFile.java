@@ -22,19 +22,12 @@ import N2Configuration.api.core.ConfigHandler.FileType;
 public abstract class ConfigFile extends ConfigSectionCollection implements Cloneable
 {
 
-	private static final String sectionOutLine = "-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/";
-	private static String[] fileDescription;
 	private static Logger log = N2ConfigApi.log;
-	private String configName;
 	private String fileName;
 	
 	private ConfigFile(String sectionName, String[] description, boolean setExtraSpaces)
 	{
 		super(sectionName, description, setExtraSpaces);
-		
-		this.setCustomSectionStarter(sectionOutLine);
-		this.setCustomSectionHeadEnder(sectionOutLine);
-		this.setCustomSectionEnder(sectionOutLine);
 	}
 	
 	/**
@@ -44,7 +37,7 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * @param targetDirectory - The default Directory where the ConfigurationFile will be generated.
 	 * @throws IllegalArgumentException - When this targetDirectory isn't a registered Directory.
 	 */
-	public ConfigFile(String fileName, String configName, File targetDirectory)
+	public ConfigFile(String fileName, File targetDirectory)
 	{
 		this("defaultSection", null, true);
 		
@@ -53,17 +46,11 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 		else ConfigHandler.registerConfigurationFile(this, fileName, targetDirectory);	
 		
 		this.fileName = fileName;
-		this.configName = configName;
-		
-		this.fileDescription = new String[]
-			{
-				configName +  " Config File",
-				" ",
-				"warning, its recomended to backup a custom WORKING config file before editing.",
-				"any misstakes may cause an resset!"
-			};
-		this.setDescription(fileDescription);
-		
+	}
+	
+	protected void setFileName(String fileName)
+	{
+		this.fileName = fileName;
 	}
 	
 	/**
@@ -75,11 +62,18 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * This will write All sections that are registered to this ConfigFile
 	 * @throws IOException
 	 */
-	public void writeAllSections() throws IOException
+	public void writeAllSections()
 	{
-		BufferedWriter writer = getNewWriter();
-		super.writeAllSections(writer);
-		closeWriter(writer);
+		try
+		{
+			BufferedWriter writer = getNewWriter();
+			super.writeAllSections(writer);
+			closeWriter(writer);
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
 	}
 	
 	/**
@@ -87,11 +81,18 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * @param sectionName
 	 * @throws IOException
 	 */
-	public void writeSection(String sectionName) throws IOException
+	public void writeSection(String sectionName)
 	{
-		BufferedWriter writer = getNewWriter();
-		super.writeSubSection(writer, sectionName);
-		closeWriter(writer);
+		try
+		{
+			BufferedWriter writer = getNewWriter();
+			super.writeSubSection(writer, sectionName);
+			closeWriter(writer);
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
 	}
 	
 	/**
@@ -101,30 +102,36 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * @param invalidSectionNames - List of IDNames of all the invalid Sections.
 	 * @throws IOException
 	 */
-	public void regenerateConfigFile(List<String> invalidSectionNames) throws IOException
+	public void regenerateConfigFile(List<String> invalidSectionNames)
 	{
-		File tempFile = ConfigHandler.generateSingleFileFromConfigFile(FileType.Temp, this, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
-		File configFile = ConfigHandler.generateSingleFileFromConfigFile(FileType.Original, this, ConfigHandler.getFileFromConfigFile(this).getParentFile());
-		
-		BufferedWriter writer = getNewWriter();
-		BufferedReader reader = new BufferedReader(new FileReader(tempFile));
-		
-		int sectionCount = 0;
-		
-		sectionCount = super.regenConfigChapter(writer, reader, invalidSectionNames);
-		
-		if(sectionCount != this.AbsoluteSubSectionMap.size())
+		try
 		{
-			log.error("Couldn't resolve the sections in: " + configFile.getPath());
-			log.error("recreating this config file, all data will be restored to its default Value");
-			File backUpFile = ConfigHandler.generateSingleFileFromConfigFile(ConfigHandler.FileType.BackUp, this, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
-			ConfigHandler.copyFile(tempFile, backUpFile);
-			ConfigHandler.generateSingleFileFromConfigFile(ConfigHandler.FileType.Original, this, ConfigHandler.getFileFromConfigFile(this).getParentFile());
-			this.generateFile();
+			File tempFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Temp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
+			File configFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
+			
+			BufferedWriter writer = getNewWriter();
+			BufferedReader reader = new BufferedReader(new FileReader(tempFile));
+			
+			int sectionCount = 0;
+			
+			sectionCount = super.regenConfigChapter(writer, reader, invalidSectionNames);
+			
+			if(sectionCount != this.AbsoluteSubSectionMap.size())
+			{
+				log.error("Couldn't resolve the sections in: " + configFile.getPath());
+				log.error("recreating this config file, all data will be restored to its default Value");
+				File backUpFile = ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.BackUp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
+				ConfigHandler.copyFile(tempFile, backUpFile);
+				ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
+			}
+			closeWriter(writer);
+			tempFile.delete();
+			closeReader(reader);
 		}
-		closeWriter(writer);
-		tempFile.delete();
-		closeReader(reader);
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
 	}
 	
 	/**
@@ -135,7 +142,7 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * @return List(section names) || null - see description.
 	 * @throws IOException
 	 */
-	public List checkConfigFile(BufferedReader reader) throws IOException
+	public List checkConfigFile()
 	{
 		String readedLine;
 		List<String> invalidSectionList = new ArrayList<String>();
@@ -147,27 +154,36 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 			invalidSectionList.add(section.next());
 		}
 
-		while((readedLine = reader.readLine()) != null)
+		try
 		{
-			if(readedLine.startsWith("#") || readedLine.isEmpty())
-				continue;
-
-			if(readedLine.contains(";"))
+			BufferedReader reader = new BufferedReader(new FileReader(ConfigHandler.getFileFromConfigFile(this)));
+			while((readedLine = reader.readLine()) != null)
 			{
-				for(int i = 0; i < invalidSectionList.size(); i++)
+				if(readedLine.startsWith("#") || readedLine.isEmpty())
+					continue;
+
+				if(readedLine.contains(";"))
 				{
-					String subString = readedLine.replaceAll("[\\s.*]", "");
-					char firstLetter = subString.charAt(0);
-					try
+					for(int i = 0; i < invalidSectionList.size(); i++)
 					{
-						if (invalidSectionList.contains(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";"))))
+						String subString = readedLine.replaceAll("[\\s.*]", "");
+						char firstLetter = subString.charAt(0);
+						try
 						{
-							invalidSectionList.remove(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";")));
+							if (invalidSectionList.contains(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";"))))
+							{
+								invalidSectionList.remove(readedLine.substring(readedLine.indexOf(firstLetter), readedLine.indexOf(";")));
+							}
 						}
+						catch(Exception e){}
 					}
-					catch(Exception e){}
 				}
 			}
+			reader.close();
+		}
+		catch (Exception e)
+		{
+			log.catching(e);
 		}	
 		if(!invalidSectionList.isEmpty())
 		{
@@ -187,11 +203,19 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 * @return - The value of this section, or the Default value if the value can't be resolved
 	 * @throws IOException
 	 */
-	public Object getValue(String sectionName) throws IOException
+	public Object getValue(String sectionName)
 	{
-		BufferedReader reader = getNewReader();
-		Object value = this.getValue(sectionName, reader);
-		closeReader(reader);
+		Object value = null;
+		try
+		{
+			BufferedReader reader = getNewReader();
+			value = this.getValue(sectionName, reader);
+			closeReader(reader);
+		}
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
 		return value;
 	}
 	
@@ -211,21 +235,23 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 		return this.fileName;
 	}
 	
-	public String getConfigName()
+	public boolean getIsWritten()
 	{
-		return this.configName;
-	}
-	
-	public boolean getIsWritten() throws IOException
-	{
-		BufferedReader reader = getNewReader();
-		String readedLine;
-		if((readedLine = reader.readLine()) != null)
+		try
 		{
+			BufferedReader reader = getNewReader();
+			String readedLine;
+			if((readedLine = reader.readLine()) != null)
+			{
+				closeReader(reader);
+				return true;
+			}
 			closeReader(reader);
-			return true;
 		}
-		closeReader(reader);
+		catch(Exception e)
+		{
+			log.catching(e);
+		}
 		return false;
 	}
 	

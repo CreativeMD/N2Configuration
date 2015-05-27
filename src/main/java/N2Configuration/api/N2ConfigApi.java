@@ -1,8 +1,10 @@
 package N2Configuration.api;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
@@ -34,7 +36,11 @@ public class N2ConfigApi
 	public static File registerCustomConfigDirectory(String directoryPath, String directoryID)
 	{
 		if(DirectoryList.isEmpty())
-			DirectoryList.put("Default", (new File(getMCMainDir(), "config")));
+		{
+			File defaultFile = new File(getMCMainDir(), "config");
+			DirectoryList.put("Default", defaultFile);
+			TempDirectoryList.put(defaultFile, (new File(getConfigDir(), "temp")));
+		}
 		
 		File newDir = new File(getConfigDir(), directoryPath);
 		File newTempDir = new File(getConfigDir(), (directoryPath + "/temp"));
@@ -70,7 +76,11 @@ public class N2ConfigApi
 	public static File registerCustomDirectory(File ParentDirectory, String directoryPath, String directoryID)
 	{
 		if(DirectoryList.isEmpty())
-			DirectoryList.put("Default", (new File(getMCMainDir(), "config")));
+		{
+			File defaultFile = new File(getMCMainDir(), "config");
+			DirectoryList.put("Default", defaultFile);
+			TempDirectoryList.put(defaultFile, (new File(getConfigDir(), "temp")));
+		}
 		
 		File newDir = new File(ParentDirectory, directoryPath);
 		File newTempDir = new File(ParentDirectory, (directoryPath + "/temp"));
@@ -105,8 +115,30 @@ public class N2ConfigApi
 	public static File getConfigDir()
 	{
 		if(DirectoryList.isEmpty())
-			DirectoryList.put("Default", (new File(getMCMainDir(), "config")));
+		{
+			File defaultFile = new File(getMCMainDir(), "config");
+			DirectoryList.put("Default", defaultFile);
+			TempDirectoryList.put(defaultFile, (new File(getConfigDir(), "temp")));
+		}
 		return getFileDirFromID("Default");
+	}
+	
+	/**
+	 * @param directory
+	 * @return - The names of all the Files with the extension '.cfg' inside this Directory.
+	 */ 
+	public static String[] getDirContentConfigNames(File directory)
+	{
+		String[] totalList = getDirContentNames(directory);
+		List<String> finalList = new ArrayList<String>();
+		for(int i = 0; i < totalList.length; i++)
+		{
+			String currentName = totalList[i];
+			if(currentName.endsWith(".cfg"))
+				finalList.add(currentName);
+		}
+		
+		return (String[]) finalList.toArray(new String[finalList.size()]);
 	}
 	
 	/**

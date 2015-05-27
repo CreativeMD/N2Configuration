@@ -1,0 +1,166 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    N2ConfigAPI Tutorial - Beginner
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    This will be a tutorial for the easiest way to use this API. This makes use of
+    the DefaultConfigFile.Class. In a later tutorial will be explained how you can
+    make your own ConfigFile.Class.
+    ------------------------------
+
+    Lets say you have a mod, and you want to load an Integer for an (Potion)ID to prevent
+    IDconflicts. With this tutorial I'll try to explain how you can do this.
+    First off all, its important to decide where you when you want to create your configFile!
+    Usually you want to create it in the Pre-Init section, before you register anything else.
+    
+    To start of, we need to create our own ConfigFile. This can be done in 2 ways:
+    - create a new ConfigFile(.Class)
+    - create your own ConfigFileClass and extend ConfigFile.class
+      (this will be covered in a later tutorial)
+    
+    Here is an example on how you can do it.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------  
+     ConfigFile example = new DefaultConfigFile("myFileName", "myConfigName", N2ConfigApi.getConfigDir());
+     ------------------------------------------------------------------------------------------------------------------------------------------------------  
+    
+    This will create a new Instance of the API ConfigFile.
+    The first parameter is the name the File will get. (in this case myFileName.cfg)
+    The second parameter is the name of the configFile. This will be printed above the configFile
+     by default.
+    The third parameter you may forget. But in short, this will get the default '.../config' directory.
+     Later this tutorial (in the extra section) I'll explain how to register and use your own directory.
+    
+    Once the ConfigFile is created, we can add a new ConfigSection where we can input our own ID.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------ 
+     example.addNewIntegerSection("examplePoitionID", null, 123, false); 
+     ------------------------------------------------------------------------------------------------------------------------------------------------------  
+
+    This will create (and automatically register) a new ConfigSection of the type: Integer.
+    The first parameter is the ID of this ConfigSection. you can use this to obtain the value
+    (explained later). this will also be written before the default value.
+    The second parameter is the description. I didn't want to implement a description, so I put in 'null'.
+    The third parameter is the default value, this will be printed if the configFile is (re)generated.
+    The last parameter is if the outLines should be hidden. since I like them, I put in 'false'.
+    
+    Now we have created our ConfigFile, and added our ConfigSection. we can generate the configFile.
+    For this you need to input the FileName you gave to your configFile. The method I'm using here will
+    generate, check and regenerate(if needed) the ConfigFile
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     ConfigHandler.loadAndCheckConfigFile("myFileName");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------  
+    
+    Oke, now you have created, and generated your own ConfigFile!
+    
+    
+    
+    Here is how your Class might look like
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     Package examplePackage
+     
+     import N2Configuration.api.N2ConfigApi;
+     import N2Configuration.api.core.ConfigHandler;
+     import N2Configuration.api.core.ConfigFile;
+     
+     import cpw.mods.fml.common.Mod.EventHandler;
+     import cpw.mods.fml.common.event.FMLPreInitializationEvent;    
+     
+     public class ExampleClass
+     {
+     
+         @EventHandler
+         public void PreInit(FMLPreInitializationEvent event)
+         {
+             ConfigFile example = new DefaultConfigFile("myFileName", "myConfigName", N2ConfigApi.getConfigDir());
+             example.addNewIntegerSection("examplePoitionID", null, 123, false);
+             ConfigHandler.loadAndCheckConfigFile("myFileName");
+             
+             //here you call the rest what needs to go in the preInit section.
+         }
+         //more methods may be called here.
+     
+     }   
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    
+    And here is how the ConfigFile should look like
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     
+        -/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+         # myConfigName Config File
+         #  
+         # warning, its recomended to backup a custom WORKING config file before editing.
+         # any misstakes may cause an resset!
+        -/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+
+          -----------------------------------------------------------------------------------------------------
+
+          examplePoitionID; 123
+
+          -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
+        -/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
+    
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    
+    To actually obtain your value, you simply need to do the following.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     potionID = example.getValue("examplePoitionID");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    Warning! Its recommended to use an static Value which you set once during the gameStartup
+    rather than loading the every time the game needs the value. Since the Reading of a File
+    is relatively slow, it may decrease the gamePerformance drastically!
+    
+    Congratulations!, you now have made your own ConfigFile!
+    
+    
+    
+    
+    Extra
+    ------------------------------
+    You may want to add little adjustments to your File placement or File look. Here are a
+    few examples on what you can do/change on a ConfigFile
+    
+    -Changing the outlines of the ConfigFile
+     
+     An ConfigFile has 3 types of outLines: Starter, HeadEnder, Ender. All of them can be
+     changed independently.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     example.setCustomSectionStarter("my own awesome custom sectionStarter");
+     example.setCustomSectionHeadEnder("my own awesome custom sectionHeadEnder");
+     example.setCustomSectionEnder("my own awesome custom sectionEnder");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+     Each SectionType has the same outLines as an ConfigFile. these can be changed
+     independently as well. But there is a little change needed.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     //example.addNewIntegerSection("examplePoitionID", null, 123, false);
+     
+     ConfigSection potionIDSection = example.addNewIntegerSection("examplePoitionID", null, 123, false);
+     
+     potionIDSection.setCustomSectionStarter("my own awesome custom sectionStarter");
+     potionIDSection.setCustomSectionHeadEnder("my own awesome custom sectionHeadEnder");
+     potionIDSection.setCustomSectionEnder("my own awesome custom sectionEnder");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    -Changing the description at the top of the ConfigFile
+    
+     You can change the description of the ConfigFile as follows. Note, this requires an
+     String Array. Each String represents a new Line!
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     example.setDescription(myDescriptionStringArray);
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    -Changing the TargetDirectory
+    
+     It is possible to register and use your own Directory. Note that the Path you put
+     in is the Path inside the ".../config" directory.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     N2ConfigApi.registerCustomConfigDirectory("myModConfigFolder, "MyFileID");
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    

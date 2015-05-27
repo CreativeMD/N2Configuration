@@ -1,0 +1,112 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    N2ConfigAPI Tutorial - Expert(Dynamic updating)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    This tutorial will explain a way to Dynamically update your ConfigFile
+    For this tutorial you need to know how to make your own ConfigFile.Class.
+    (Tutorial Advanced)
+    ------------------------------
+    
+    First of all you need to consider why you want to Dynamically update your
+    ConfigFile, since the process of writing/reading Files is a relatively slow
+    and might influence the game in a bad way!
+    
+    There are 2 ways of Dynamically updating. one is updating the content of a
+    ConfigFile(Don't really know why you want to do that). That will be explained in
+    part 1. the second way is updating the ConfigFiles, with name changing, multiple
+    ConfigFiles etc..
+    
+    
+    
+    Dynamic Updating Part 1 - Content updating
+    ------------------------------
+    
+    There are a few methods implemented especially for this purpose. These will allow
+    you to add, insert and remove ConfigSections to/form a ConfigFile/ConfigSectionCollection.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+      exampleConfigFile.addNew[type]ConfigSection(parameters);//Described in a earlier tutorial.
+      
+      {
+        ConfigSection myConfigSection = new ConfigSection("mySectionName", myDescription, myDefaultValue, SectionType.Integer, true, false);
+        exampleConfigFile.insertConfigSection(myConfigSection, targetConfigSection);
+      }
+      
+      exampleConfigFile.removeSubConfigSection("mySectionName");
+      exampleConfigFile.clearAllConfigSections();//This will remove all ConfigSections, use with  Caution!
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    With these methods you have infinite options for editing the content of your ConfigFile.
+    Note, after changing the content, you still need to (re)generate the ConfigFile!
+    Also, updated/changed ConfigSections Won't be saved automatically when you close the game.
+    You will need to add the ConfigSections again after a new Startup. So its recommended to 
+    Hard-code the ConfigSections into your ConfigFile somewhere.
+    
+    
+    
+    
+    Dynamic Updating Part 2 - File updating
+    ------------------------------
+    
+    This is an more complicated but more common way of Dynamically updating ConfigFiles.
+    In this case you can Think of ConfigFiles per Player/World/Game-mode etc.. In this
+    part I'll show you how to copy Files, and how to get Files(for manual input)
+    
+    Note, its recommended to have an decent knowledge about java!
+    
+        
+    Copying ConfigFiles
+    --------------------
+    
+    This feature is added for when you need a copy of a certain ConfigFile after a changes
+    has been made(In the actual File itself or in the ConfigFile).
+    
+    To Copy a ConfigFile you Simply need to call one method. Keep in mind that this method
+    will return a File instance, not a ConfigFile Instance!.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+        ConfigHandler.generateSingleFileFromConfigFile("newExampleFile", example, FileType.Clone, file);
+        ConfigFile something = ConfigHandler.getConfigFileFromName("newExampleFile");   // This way you'll get the instance of the new ConfigFile.
+        
+        //ConfigHandler.loadAndCheckConfigFile("newExampleFile");   // You don't need to call this. The file is already generated during the Copy.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    Note that if the new ConfigFileName is 'null' it will create an name for you (e.g. Filename_copy_1. Filename_copy_2 etc.) You'll need to use these
+    names if you want to get the instance of the ConfigFile.
+    
+    
+    
+    
+    Load Files
+    --------------------
+    
+    It might be confusing what is meant by 'Load Files', since there are 'Load()' methods in this API.
+    The way it is meant here is, lets say you have multiple Files you can use for a certain engine.
+    And you would like that you can drop an random File into a folder, and your mod will automatically
+    check if its an valid File and add it to a FileList. Something like a resourcePack you can add/modify
+    midGame.
+    
+    First you'll need to get a StringArray of Files inside the specific Directory. This can be done with this method.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     String[] Filelist = N2ConfigApi.getDirContentConfigNames(myDirectory);
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    
+    Than you'll need a check for the ConfigFiles. This can simply be done by determine if an File
+    has certain ConfigSections. For this example I want that a valid ConfigFile contains ALL ConfigSections.
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+     
+      for(int i = 0; i < fileList.length; i++)
+      {
+         String currentName = fileList[i].substring(0, fileList[i].length()-4);   //This will cut the extension ('.cfg') from the actual String.
+         ConfigFile currentConfigFile = new ExampleConfigFile(currentName, file);
+         ConfigHandler.loadConfigFile(currentName);
+         List invalidSectionNames = currentConfigFile.checkConfigFile();
+         if(invalidSectionNames != null)
+         {
+             ConfigHandler.removeConfigurationFile(currentName);
+         }
+      }
+      
+     ------------------------------------------------------------------------------------------------------------------------------------------------------
+    Note, if an ConfigFile is already loaded, it will be loaded twice which will give some errors.(no fatal ones)
+    
+
