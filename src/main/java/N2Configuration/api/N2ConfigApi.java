@@ -135,7 +135,7 @@ public class N2ConfigApi
 		{
 			String currentName = totalList[i];
 			if(currentName.endsWith(".cfg"))
-				finalList.add(currentName);
+				finalList.add(currentName.substring(0, currentName.length()-4));
 		}
 		
 		return (String[]) finalList.toArray(new String[finalList.size()]);

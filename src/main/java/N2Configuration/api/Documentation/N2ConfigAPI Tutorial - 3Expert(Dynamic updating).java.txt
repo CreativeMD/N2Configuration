@@ -96,7 +96,7 @@
      
       for(int i = 0; i < fileList.length; i++)
       {
-         String currentName = fileList[i].substring(0, fileList[i].length()-4);   //This will cut the extension ('.cfg') from the actual String.
+         String currentName = fileList[i];
          ConfigFile currentConfigFile = new ExampleConfigFile(currentName, file);
          ConfigHandler.loadConfigFile(currentName);
          List invalidSectionNames = currentConfigFile.checkConfigFile();
