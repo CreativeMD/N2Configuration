@@ -14,7 +14,7 @@ N2ConfigApi
 	Bug reports/suggestions
 	  If you found a bug, or if you think a certain option should be added to this api, feel free to post it on
 	  this Github, or on the forumPost:
-	  http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2435712-n2configapi-an-universal-api-to-manage-your
+	  http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2435712-n2configapi-an-universal-api-to-manage
 
 	Download
-	 http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1288963-randomadditions-alpha-v0-10-updated-adding-a-new
+http://adf.ly/10091227/n2configapi
