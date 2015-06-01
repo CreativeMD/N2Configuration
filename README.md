@@ -17,4 +17,4 @@ N2ConfigApi
 	  http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2435712-n2configapi-an-universal-api-to-manage-your
 
 	Download
-	 http://adf.ly/10091227/n2configapi
+	 http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1288963-randomadditions-alpha-v0-10-updated-adding-a-new
