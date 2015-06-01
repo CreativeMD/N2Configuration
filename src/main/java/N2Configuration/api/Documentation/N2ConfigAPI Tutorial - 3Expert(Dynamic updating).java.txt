@@ -28,6 +28,11 @@
       exampleConfigFile.addNew[type]ConfigSection(parameters);//Described in a earlier tutorial.
       
       {
+        myConfigSection.setDefaultValue(value);
+        exampleConfigFile.regenerateConfigFile(exampleConfigFile.getChangedSections());
+      }
+      
+      {
         ConfigSection myConfigSection = new ConfigSection("mySectionName", myDescription, myDefaultValue, SectionType.Integer, true, false);
         exampleConfigFile.insertConfigSection(myConfigSection, targetConfigSection);
       }

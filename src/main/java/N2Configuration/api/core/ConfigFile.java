@@ -19,6 +19,23 @@ import N2Configuration.api.N2ConfigApi;
 import N2Configuration.api.core.ConfigSection.SectionType;
 import N2Configuration.api.core.ConfigHandler.FileType;
 
+/**
+ * Copyright 2015 N247S
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *     
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+
 public abstract class ConfigFile extends ConfigSectionCollection implements Cloneable
 {
 
@@ -104,33 +121,36 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 	 */
 	public void regenerateConfigFile(List<String> invalidSectionNames)
 	{
-		try
+		if(invalidSectionNames != null && !invalidSectionNames.isEmpty())
 		{
-			File tempFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Temp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
-			File configFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
-			
-			BufferedWriter writer = getNewWriter();
-			BufferedReader reader = new BufferedReader(new FileReader(tempFile));
-			
-			int sectionCount = 0;
-			
-			sectionCount = super.regenConfigChapter(writer, reader, invalidSectionNames);
-			
-			if(sectionCount != this.AbsoluteSubSectionMap.size())
+			try
 			{
-				log.error("Couldn't resolve the sections in: " + configFile.getPath());
-				log.error("recreating this config file, all data will be restored to its default Value");
-				File backUpFile = ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.BackUp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
-				ConfigHandler.copyFile(tempFile, backUpFile);
-				ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
+				File tempFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Temp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
+				File configFile = ConfigHandler.generateSingleFileFromConfigFile(this, FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
+				
+				BufferedWriter writer = getNewWriter();
+				BufferedReader reader = new BufferedReader(new FileReader(tempFile));
+				
+				int sectionCount = 0;
+				
+				sectionCount = super.regenConfigChapter(writer, reader, invalidSectionNames);
+				
+				if(sectionCount != this.AbsoluteSubSectionMap.size())
+				{
+					log.error("Couldn't resolve the sections in: " + configFile.getPath());
+					log.error("recreating this config file, all data will be restored to its default Value");
+					File backUpFile = ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.BackUp, N2ConfigApi.getTempDir(ConfigHandler.getFileFromConfigFile(this).getParentFile()));
+					ConfigHandler.copyFile(tempFile, backUpFile);
+					ConfigHandler.generateSingleFileFromConfigFile(this, ConfigHandler.FileType.Original, ConfigHandler.getFileFromConfigFile(this).getParentFile());
+				}
+				closeWriter(writer);
+				tempFile.delete();
+				closeReader(reader);
 			}
-			closeWriter(writer);
-			tempFile.delete();
-			closeReader(reader);
-		}
-		catch(Exception e)
-		{
-			log.catching(e);
+			catch(Exception e)
+			{
+				log.catching(e);
+			}
 		}
 	}
 	
@@ -195,6 +215,26 @@ public abstract class ConfigFile extends ConfigSectionCollection implements Clon
 			return invalidSectionList;
 		}
 		return null;
+	}
+	
+	/**
+	 * This will go through every ConfigSection, and see if the DefaultValue has Changed.
+	 * @return - A list of all Changed ConfigSections, or null if there aren't any.
+	 */
+	public List getChangedSections()
+	{
+		List<String> changedSections = new ArrayList<String>();
+		Iterator<String> section = this.AbsoluteSubSectionMap.keySet().iterator();
+		
+		while(section.hasNext())
+		{
+			ConfigSection currentSection = this.getSubSection(section.next());
+			if(currentSection.getChangedDefaultValue())
+				changedSections.add(section.next());
+		}
+		if(changedSections.isEmpty())
+			return null;
+		return changedSections;
 	}
 
 	

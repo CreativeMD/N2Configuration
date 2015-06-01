@@ -7,6 +7,23 @@ import org.apache.logging.log4j.Logger;
 
 import N2Configuration.api.N2ConfigApi;
 
+/**
+ * Copyright 2015 N247S
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *     
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+
 public class ConfigSection
 {
 	private Logger log = N2ConfigApi.log;
@@ -19,6 +36,7 @@ public class ConfigSection
 	private SectionType sectionType;
 	private boolean seperateLines;
 	private boolean hideOutLines;
+	private boolean changedDefaultValue;
 	
 	/**
 	 * Default sectionStarter
@@ -74,6 +92,7 @@ public class ConfigSection
 		this.defaultValue = defaultValue;
 		this.seperateLines = separateLines;
 		this.hideOutLines = hideOutLines;
+		this.changedDefaultValue = false;
 	}
 
 	/**
@@ -142,6 +161,11 @@ public class ConfigSection
 		return this.hideOutLines;
 	}
 	
+	public boolean getChangedDefaultValue()
+	{
+		return this.changedDefaultValue;
+	}
+	
 	public String getStarter()
 	{
 		return this.sectionStarter;
@@ -164,9 +188,10 @@ public class ConfigSection
 	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
-	public void setCustomSectionStarter(String sectionStarter)
+	public ConfigSection setCustomSectionStarter(String sectionStarter)
 	{
 		this.sectionStarter = sectionStarter;
+		return this;
 	}
 	
 	/**
@@ -174,10 +199,11 @@ public class ConfigSection
 	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
-	public void setCustomSectionHeadEnder(String sectionHeadEnder)
+	public ConfigSection setCustomSectionHeadEnder(String sectionHeadEnder)
 	{
 		this.SectionHeadEnder = sectionHeadEnder;
 		this.hideOutLines = false;
+		return this;
 	}
 	
 	/**
@@ -185,18 +211,28 @@ public class ConfigSection
 	 * Symbols that might cause a conflict: '{''}'';'','
 	 * @param sectionStarter
 	 */
-	public void setCustomSectionEnder(String sectionEnder)
+	public ConfigSection setCustomSectionEnder(String sectionEnder)
 	{
 		this.SectionEnder = sectionEnder;
+		return this;
 	}
 	
-	public void setDescription(String[] description)
+	public ConfigSection setDescription(String[] description)
 	{
 		this.description = description;
+		return this;
 	}
 	
-	public void setDefaultValue(Object defaultvalue)
+	public ConfigSection setDefaultValue(Object defaultvalue)
 	{
 		this.defaultValue = defaultvalue;
+		this.changedDefaultValue = true;
+		return this;
+	}
+	
+	public ConfigSection setChangedDefaultValue(boolean changedDefaultValue)
+	{
+		this.changedDefaultValue = changedDefaultValue;
+		return this;
 	}
 }
